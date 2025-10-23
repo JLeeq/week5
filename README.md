@@ -86,7 +86,7 @@ week5 assignment
 
 | 메인 화면 | 할 일 추가 후 |
 |------------|----------------|
-| ![Main UI](./screenshot_main.png) | ![Todo Added](./screenshot_todos.png) |
+| <img src="./screenshot_main.png" width="400"/> | <img src="./screenshot_todos.png" width="400"/> |
 
 
 ## 💻 실행 방법
