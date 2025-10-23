@@ -50,7 +50,8 @@ todos.db
 
 | 메인 화면 | 할 일 추가 후 |
 |------------|----------------|
-| <img src="./screenshot_main.png" width="400"/> | <img src="./screenshot_todos.png" width="400"/> |
+| <img src="week5%20assignment/screenshot_main.png" width="400"/> | <img src="week5%20assignment/screenshot_todos.png" width="400"/> |
+
 
 ---
 
@@ -66,7 +67,7 @@ serve가 없다면 설치:
 npm install -g serve
 
 
-2️⃣ 브라우저에서 실행
+### 2️⃣ 브라우저에서 실행
 
 http://localhost:3000
  또는
@@ -81,6 +82,11 @@ localStorage.setItem("SUPABASE_URL", "https://nzyxxfpgjcufiwoqjwln.supabase.co")
 localStorage.setItem("SUPABASE_ANON_KEY", "YOUR_KEY_HERE");
 
 
+```
+
+
+---
+
 ## 🧠 사용 방법
 
 1. 이메일과 비밀번호로 회원가입
@@ -90,8 +96,11 @@ localStorage.setItem("SUPABASE_ANON_KEY", "YOUR_KEY_HERE");
 5. × 버튼으로 삭제
 6. 로그아웃 시 목록 초기화
 
+---
 
 👨‍💻 Author: Jian Lee
 📧 Email: example@email.com
 
 🌐 GitHub: https://github.com/JLeeq
+
+---
