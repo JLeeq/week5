@@ -50,8 +50,7 @@ todos.db
 
 | 메인 화면 | 할 일 추가 후 |
 |------------|----------------|
-| <img src="https://github.com/JLeeq/week5/blob/main/screenshot_main.png?raw=true" width="400"/> | <img src="https://github.com/JLeeq/week5/blob/main/screenshot_todos.png?raw=true" width="400"/> |
-
+| <img src="week5%20assignment/screenshot_main.png" width="400"/> | <img src="week5%20assignment/screenshot_todos.png" width="400"/> |
 
 ---
 
