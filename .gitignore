@@ -1,0 +1,12 @@
+# 로컬 서버 및 DB
+backend/
+*.db
+
+# 개인 환경파일
+.env
+.vscode/
+node_modules/
+
+# 시스템 파일
+.DS_Store
+Thumbs.db

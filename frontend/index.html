@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>Supabase Todo App</title>
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      background-color: #FFD700;
+      font-family: "Segoe UI", sans-serif;
+      margin: 0;
+      padding: 40px;
+    }
+
+    h1 {
+      display: flex;
+      align-items: center;
+      font-size: 2em;
+      font-weight: 700;
+      color: black;
+      margin-bottom: 20px;
+    }
+
+    #todoContainer {
+      background-color: #000;
+      color: #fff;
+      padding: 25px 30px;
+      border-radius: 16px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      width: 420px;
+    }
+
+    #authSection {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    #authSection input[type="email"],
+    #authSection input[type="password"] {
+      width: 90%;
+      padding: 8px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+
+    #authSection .button-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    input[type="text"] {
+      padding: 6px 8px;
+      margin-right: 6px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      padding: 6px 10px;
+      background-color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    button:hover {
+      background-color: #f0f0f0;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin-top: 16px;
+    }
+
+    li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .todo-text {
+      flex: 1;
+      margin-left: 8px;
+      cursor: pointer;
+    }
+
+    .delete-btn {
+      margin-left: 10px;
+      color: #ff4d4d;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    .delete-btn:hover {
+      color: #ff9999;
+    }
+  </style>
+</head>
+<body>
+  <h1>✅ Supabase Todo</h1>
+
+  <div id="todoContainer">
+    <div id="authSection">
+      <input id="email" type="email" placeholder="이메일 입력" />
+      <input id="password" type="password" placeholder="비밀번호 입력" />
+      <div class="button-group">
+        <button id="signupBtn">회원가입</button>
+        <button id="loginBtn">로그인</button>
+        <button id="logoutBtn">로그아웃</button>
+      </div>
+    </div>
+
+    <hr />
+    <input id="todoInput" placeholder="할 일을 입력하세요" />
+    <button id="addBtn">추가</button>
+    <ul id="todoList"></ul>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      const SUPABASE_URL = "https://nzyxxfpgjcufiwoqjwln.supabase.co";
+      const SUPABASE_ANON_KEY =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im56eXh4ZnBnamN1Zml3b3Fqd2xuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA5MTE2NDcsImV4cCI6MjA3NjQ4NzY0N30.Wypgkd98RoGv-pmRiexu0TuYXzISWrddUbsG1CwJMaI";
+
+      const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+      // 회원가입
+      async function signUp() {
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+        const { error } = await supabaseClient.auth.signUp({ email, password });
+        if (error) alert(error.message);
+        else alert("회원가입 성공!");
+      }
+
+      // 로그인
+      async function signIn() {
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+        const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+        if (error) alert(error.message);
+        else {
+          alert("로그인 성공!");
+          loadTodos();
+        }
+      }
+
+      // 로그아웃
+      async function signOut() {
+        await supabaseClient.auth.signOut();
+        alert("로그아웃 완료");
+        document.getElementById("todoList").innerHTML = "";
+      }
+
+      // 할일 로드
+      async function loadTodos() {
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        if (!user) return console.log("로그인 필요");
+        const { data, error } = await supabaseClient
+          .from("todos")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false });
+        if (error) console.error(error);
+        else renderTodos(data);
+      }
+
+      // 할일 추가
+      async function addTodo() {
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        if (!user) return alert("로그인 후 이용해주세요!");
+        const text = document.getElementById("todoInput").value.trim();
+        if (!text) return;
+        await supabaseClient.from("todos").insert({ text, completed: false, user_id: user.id });
+        document.getElementById("todoInput").value = "";
+        loadTodos();
+      }
+
+      // 체크박스 토글 (완료/미완료)
+      async function updateTodoStatus(id, completed) {
+        await supabaseClient.from("todos").update({ completed }).eq("id", id);
+        loadTodos();
+      }
+
+      // 할일 텍스트 수정
+      async function updateTodoText(id, newText) {
+        if (!newText.trim()) return;
+        await supabaseClient.from("todos").update({ text: newText }).eq("id", id);
+        loadTodos();
+      }
+
+      // 삭제
+      async function deleteTodo(id) {
+        await supabaseClient.from("todos").delete().eq("id", id);
+        loadTodos();
+      }
+
+      // 렌더링
+      function renderTodos(todos) {
+        const list = document.getElementById("todoList");
+        list.innerHTML = todos
+          .map(
+            (t) => `
+          <li>
+            <input type="checkbox" ${t.completed ? "checked" : ""} onchange="updateTodoStatus(${t.id}, this.checked)" />
+            <span class="todo-text" ondblclick="editTodoText(${t.id}, '${t.text.replace(/'/g, "\\'")}')">${t.text}</span>
+            <button class="delete-btn" onclick="deleteTodo(${t.id})">×</button>
+          </li>`
+          )
+          .join("");
+      }
+
+      // 더블 클릭 시 수정 입력창으로 교체
+      window.editTodoText = function (id, oldText) {
+        const newText = prompt("할 일을 수정하세요:", oldText);
+        if (newText !== null) updateTodoText(id, newText);
+      };
+
+      // 이벤트 등록
+      document.getElementById("signupBtn").addEventListener("click", signUp);
+      document.getElementById("loginBtn").addEventListener("click", signIn);
+      document.getElementById("logoutBtn").addEventListener("click", signOut);
+      document.getElementById("addBtn").addEventListener("click", addTodo);
+
+      // 전역 등록
+      window.deleteTodo = deleteTodo;
+      window.updateTodoStatus = updateTodoStatus;
+
+      console.log("✅ Supabase Todo App Ready");
+    });
+  </script>
+</body>
+</html>

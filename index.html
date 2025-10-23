@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Supabase Todo App</title>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  </head>
+  <body>
+    <!-- ✅ 1️⃣ 로그인 / 회원가입 UI 추가 -->
+    <div id="authSection">
+      <input id="email" placeholder="이메일 입력" />
+      <input id="password" type="password" placeholder="비밀번호 입력" />
+      <button id="signupBtn">회원가입</button>
+      <button id="loginBtn">로그인</button>
+      <button id="logoutBtn">로그아웃</button>
+    </div>
+
+    <hr />
+
+    <!-- ✅ 2️⃣ 기존 Todo 영역 -->
+    <h1>✅ Supabase Todo</h1>
+    <input id="todoInput" placeholder="할일을 입력하세요" />
+    <button id="addBtn">추가</button>
+    <ul id="todoList"></ul>
+
+    <script>
+      // 1️⃣ Supabase 클라이언트 생성
+      const SUPABASE_URL = "https://nzyxxfpgjcufiwoqjwln.supabase.co";
+      const SUPABASE_ANON_KEY =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im56eXh4ZnBnamN1Zml3b3Fqd2xuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA5MTE2NDcsImV4cCI6MjA3NjQ4NzY0N30.Wypgkd98RoGv-pmRiexu0TuYXzISWrddUbsG1CwJMaI";
+      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+      // ✅ 로그인 / 회원가입 / 로그아웃 기능 추가
+      async function signUp() {
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+        const { error } = await supabase.auth.signUp({ email, password });
+        if (error) alert(error.message);
+        else alert("회원가입 성공!");
+      }
+
+      async function signIn() {
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) alert(error.message);
+        else {
+          alert("로그인 성공!");
+          loadTodos();
+        }
+      }
+
+      async function signOut() {
+        await supabase.auth.signOut();
+        alert("로그아웃 완료");
+        document.getElementById("todoList").innerHTML = "";
+      }
+
+      document.getElementById("signupBtn").onclick = signUp;
+      document.getElementById("loginBtn").onclick = signIn;
+      document.getElementById("logoutBtn").onclick = signOut;
+
+      // ✅ 할일 불러오기 (로그인한 유저만)
+      async function loadTodos() {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) {
+          console.log("로그인 필요");
+          return;
+        }
+
+        const { data, error } = await supabase
+          .from("todos")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("id", { ascending: true });
+        if (error) console.error(error);
+        else renderTodos(data);
+      }
+
+      // ✅ 할일 추가 (user_id 포함)
+      async function addTodo() {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) return alert("로그인 후 이용해주세요!");
+
+        const text = document.getElementById("todoInput").value.trim();
+        if (!text) return;
+
+        await supabase.from("todos").insert({
+          text,
+          completed: false,
+          user_id: user.id,
+        });
+        document.getElementById("todoInput").value = "";
+        loadTodos();
+      }
+
+      // ✅ 렌더링
+      function renderTodos(todos) {
+        const list = document.getElementById("todoList");
+        list.innerHTML = todos
+          .map(
+            (t) => `
+              <li>
+                <input type="checkbox" ${t.completed ? "checked" : ""} />
+                ${t.text}
+              </li>
+            `
+          )
+          .join("");
+      }
+
+      document.getElementById("addBtn").onclick = addTodo;
+    </script>
+  </body>
+</html>
